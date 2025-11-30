@@ -6,7 +6,7 @@ Easily schedule draft blog posts to be published at a later date.
 
 The **Blog** and **Draft** extensions are required for scheduler to work.
 
-To change the publish interval add `SchedulerPublishInterval: 6;` to your yellow-system.ini. You can skip this to use the default 6 hours.
+To change the publish interval add `SchedulerPublishInterval: 6` to your yellow-system.ini. You can skip this to use the default 6 hours.
 
 The number is in hours, 6 hours is the default. If you're a busy blogger, you may want to set it to 1 (hour). Or if you're a occasional blogger maybe 48 (hours) makes more sense. Whatever works for you. Keep in mind that the longer you set the interval, if you add a file right after the next check it'll take a while for your blog post to appear.
 
