@@ -2,7 +2,7 @@
 // Scheduler extension, https://github.com/adegans/yellow-scheduler
 
 class YellowScheduler {
-	const VERSION = "1.0";
+	const VERSION = "1.0.1";
 	public $yellow;		 // access to API
 	public $store;		 // Cache file
 
@@ -17,19 +17,14 @@ class YellowScheduler {
 			$blogStart = $this->find_blog_page($StartLocation);
 			if(!is_null($blogStart)) {
 				$timer = trim($this->yellow->toolbox->readFile($this->store));
-                $interval = $this->yellow->system->get("SchedulerPublishInterval");
-                $interval = (is_numeric($interval)) ? $interval : 6;
-				$nextrun = time() - (3600 * $interval);
-
 				if(empty($timer)) {
 					$timer = time();
-
 					if(!$this->yellow->toolbox->writeFile($this->store, $timer)) {
-						$this->yellow->toolbox->log("error", "Scheduler: Couldn't create config file '".$this->store."'!");
+						$this->yellow->toolbox->log("error", "Couldn't create config file '".$this->store."'!");
 					}
 				}
 
-				if($timer < $nextrun) {
+				if($timer < time()) {
 					$pages = $this->find_blog_drafts($blogStart);
 					foreach($pages as $draft) {
 						$publishdate = explode(" ", $draft->get("published"));
@@ -37,24 +32,32 @@ class YellowScheduler {
 						$time = (!empty($publishdate[1])) ? explode(":", $publishdate[1]) : array(0, 0, 0);
 						$publishdate = mktime($time[0], $time[1], $time[2], $date[1], $date[2], $date[0]);
 
-						$fileData = $fileDataNew = $this->yellow->toolbox->readFile($draft->fileName);
 						if($publishdate < time()) {
-							$fileDataNew = str_replace("Status: draft", "Status: public", $fileDataNew);
+							$fileData = $fileDataNew = $this->yellow->toolbox->readFile($draft->fileName);
+
+							$pos = strpos($fileData, "Status: draft");
+							if($pos !== false) {
+    							$fileDataNew = substr_replace($fileData, "Status: public", $pos, 13);
+							}
+
 							if($fileData != $fileDataNew AND !$this->yellow->toolbox->writeFile($draft->fileName, $fileDataNew)) {
-								$this->yellow->toolbox->log("error", "Scheduler: Couldn't publish blog post '".$draft->fileName."'!");
+								$this->yellow->toolbox->log("error", "Couldn't publish blog post '".$draft->fileName."'!");
 							}
 						}
 
 						unset($publishdate, $date, $time, $fileData, $fileDataNew);
 					}
 
-					if(!$this->yellow->toolbox->writeFile($this->store, time())) {
-						$this->yellow->toolbox->log("error", "Scheduler: Couldn't update cache file '".$this->store."'!");
+                	$interval = $this->yellow->system->get("SchedulerPublishInterval");
+                	$interval = (is_numeric($interval)) ? floor($interval) : 6;
+					$nextrun = time() + (3600 * $interval);
+					if(!$this->yellow->toolbox->writeFile($this->store, $nextrun)) {
+						$this->yellow->toolbox->log("error", "Couldn't update cache file '".$this->store."'!");
 					}
 				}
 			}
 		} else {
-			$this->yellow->toolbox->log("error", "Scheduler: requires the Blog and Draft extension to be installed!");
+			$this->yellow->toolbox->log("error", "Blog and/or Draft extension is not installed!");
 		}
 	}
 
