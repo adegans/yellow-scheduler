@@ -63,7 +63,7 @@ It silently fails and writes errors to the log.
 
 ## How to install an extension
 
-[Download ZIP file](https://github.com/adegans/yellow-tagcloud/archive/refs/heads/main.zip) and copy it into your `system/extensions` folder. [Learn more about extensions](https://github.com/annaesvensson/yellow-update).
+[Download ZIP file](https://github.com/adegans/yellow-scheduler/archive/refs/heads/main.zip) and copy it into your `system/extensions` folder. [Learn more about extensions](https://github.com/annaesvensson/yellow-update).
 
 ## Developer
 
