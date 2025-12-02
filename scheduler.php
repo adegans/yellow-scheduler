@@ -2,7 +2,7 @@
 // Scheduler extension, https://github.com/adegans/yellow-scheduler
 
 class YellowScheduler {
-	const VERSION = "1.0.1";
+	const VERSION = "1.1";
 	public $yellow;		 // access to API
 	public $store;		 // Cache file
 
@@ -11,21 +11,22 @@ class YellowScheduler {
 		$this->yellow = $yellow;
 		$this->store = "system/workers/scheduler.ini";
         $this->yellow->system->setDefault("SchedulerPublishInterval", "6");
+	}
 
+    // Handle page meta data
+    public function onParseMetaData($page) {
 		if($this->yellow->extension->isExisting("blog") AND $this->yellow->extension->isExisting("draft")) {
-			$StartLocation = $this->yellow->system->get("blogStartLocation");
-			$blogStart = $this->find_blog_page($StartLocation);
-			if(!is_null($blogStart)) {
-				$timer = trim($this->yellow->toolbox->readFile($this->store));
-				if(empty($timer)) {
-					$timer = time();
-					if(!$this->yellow->toolbox->writeFile($this->store, $timer)) {
+	        if($page->get("layout")=="blog-start") {
+				$interval = trim($this->yellow->toolbox->readFile($this->store));
+				if(empty($interval)) {
+					$interval = time();
+					if(!$this->yellow->toolbox->writeFile($this->store, $interval)) {
 						$this->yellow->toolbox->log("error", "Couldn't create config file '".$this->store."'!");
 					}
 				}
 
-				if($timer < time()) {
-					$pages = $this->find_blog_drafts($blogStart);
+				if($interval < time()) {
+					$pages = $page->getChildren(1);
 					foreach($pages as $draft) {
 						$publishdate = explode(" ", $draft->get("published"));
 						$date = explode("-", $publishdate[0]);
@@ -48,9 +49,9 @@ class YellowScheduler {
 						unset($publishdate, $date, $time, $fileData, $fileDataNew);
 					}
 
-                	$interval = $this->yellow->system->get("SchedulerPublishInterval");
-                	$interval = (is_numeric($interval)) ? floor($interval) : 6;
-					$nextrun = time() + (3600 * $interval);
+                	$interval_hours = $this->yellow->system->get("SchedulerPublishInterval");
+                	$interval_hours = (is_numeric($interval_hours)) ? floor($interval_hours) : 6;
+					$nextrun = time() + (3600 * $interval_hours);
 					if(!$this->yellow->toolbox->writeFile($this->store, $nextrun)) {
 						$this->yellow->toolbox->log("error", "Couldn't update cache file '".$this->store."'!");
 					}
@@ -59,35 +60,5 @@ class YellowScheduler {
 		} else {
 			$this->yellow->toolbox->log("error", "Blog and/or Draft extension is not installed!");
 		}
-	}
-
-	// Return blog start page, null if not found
-	private function find_blog_page($StartLocation) {
-		if ($StartLocation == "auto") {
-			$blogStart = null;
-			foreach($this->yellow->content->top(true, false) as $pageTop) {
-				if($pageTop->get("layout") == "blog-start") {
-					$blogStart = $pageTop;
-					break;
-				}
-			}
-		} else {
-			$blogStart = $this->yellow->content->find($StartLocation);
-		}
-
-		return $blogStart;
-	}
-
-	// Return blog drafts
-	private function find_blog_drafts($page) {
-		if($this->yellow->system->get("blogStartLocation") == "auto") {
-			$pages = $page->getChildren(1);
-		} else {
-			$pages = $this->yellow->content->index();
-		}
-		$pages->filter("layout", "blog");
-		$pages->filter("status", "draft");
-
-		return $pages;
 	}
 }

@@ -54,6 +54,9 @@ It silently fails and writes errors to the log.
 
 ## Changelog
 
+1.1 - 2025-12-01
+* Fix - No longer interferes with getUrl();
+
 1.0.1 - 2025-11-30
 * Fix - Only replace the first occurence of 'Status: draft'
 * Update - More logical timer code
