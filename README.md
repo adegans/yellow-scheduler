@@ -54,6 +54,10 @@ It silently fails and writes errors to the log.
 
 ## Changelog
 
+1.2 - 2025-12-09
+* Update - Much more reliable scheduler function
+* Fix - No more double checking if page needs publishing
+
 1.1 - 2025-12-01
 * Fix - No longer interferes with getUrl();
 
